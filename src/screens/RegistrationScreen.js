@@ -8,6 +8,9 @@ import {
   TextInput,
   Alert,
   Animated,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -17,6 +20,7 @@ import { COLORS } from '../constants/colors';
 
 const RegistrationScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     teamName: '',
     teamLead: {
@@ -41,6 +45,7 @@ const RegistrationScreen = ({ navigation }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const scrollViewRef = useRef(null);
 
   React.useEffect(() => {
     Animated.parallel([
@@ -101,12 +106,16 @@ const RegistrationScreen = ({ navigation }) => {
     if (validateCurrentStep()) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setCurrentStep(prev => Math.min(prev + 1, 4));
+      // Scroll to top when changing steps
+      scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: true });
     }
   };
 
   const prevStep = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCurrentStep(prev => Math.max(prev - 1, 1));
+    // Scroll to top when changing steps
+    scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: true });
   };
 
   const validateCurrentStep = () => {
@@ -199,7 +208,7 @@ const RegistrationScreen = ({ navigation }) => {
     </View>
   );
 
-  const InputField = ({ label, value, onChangeText, placeholder, keyboardType = 'default', multiline = false }) => (
+  const InputField = ({ label, value, onChangeText, placeholder, keyboardType = 'default', multiline = false, returnKeyType = 'next', onSubmitEditing = null, blurOnSubmit = true }) => (
     <View style={styles.inputGroup}>
       <Text style={styles.inputLabel}>{label}</Text>
       <TextInput
@@ -212,324 +221,352 @@ const RegistrationScreen = ({ navigation }) => {
         multiline={multiline}
         numberOfLines={multiline ? 3 : 1}
         textAlignVertical={multiline ? 'top' : 'center'}
+        returnKeyType={returnKeyType}
+        onSubmitEditing={onSubmitEditing}
+        blurOnSubmit={blurOnSubmit}
+        autoCapitalize={keyboardType === 'email-address' ? 'none' : 'words'}
+        autoCorrect={false}
+        spellCheck={false}
       />
     </View>
   );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Animated.View 
-        style={[
-          styles.header,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }
-        ]}
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}
       >
-        <LinearGradient
-          colors={[COLORS.primary, COLORS.secondary]}
-          style={styles.headerGradient}
-        >
-          <View style={styles.headerContent}>
-            <Ionicons name="person-add" size={40} color={COLORS.text} />
-            <Text style={styles.headerTitle}>Team Registration</Text>
-            <Text style={styles.headerSubtitle}>
-              Join Piston Cup 2025 - Register your team now
-            </Text>
-          </View>
-        </LinearGradient>
-      </Animated.View>
-
-      <View style={styles.content}>
-        {/* Step Indicators */}
         <Animated.View 
           style={[
-            styles.stepsSection,
+            styles.header,
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
             }
           ]}
         >
-          <View style={styles.stepsContainer}>
-            <StepIndicator
-              step={1}
-              title="Team Info"
-              isActive={currentStep === 1}
-              isCompleted={currentStep > 1}
-            />
-            <StepIndicator
-              step={2}
-              title="Team Lead"
-              isActive={currentStep === 2}
-              isCompleted={currentStep > 2}
-            />
-            <StepIndicator
-              step={3}
-              title="Members"
-              isActive={currentStep === 3}
-              isCompleted={currentStep > 3}
-            />
-            <StepIndicator
-              step={4}
-              title="Project"
-              isActive={currentStep === 4}
-              isCompleted={false}
-            />
-          </View>
+          <LinearGradient
+            colors={[COLORS.primary, COLORS.secondary]}
+            style={styles.headerGradient}
+          >
+            <View style={styles.headerContent}>
+              <Ionicons name="person-add" size={40} color={COLORS.text} />
+              <Text style={styles.headerTitle}>Team Registration</Text>
+              <Text style={styles.headerSubtitle}>
+                Join Piston Cup 2025 - Register your team now
+              </Text>
+            </View>
+          </LinearGradient>
         </Animated.View>
 
-        {/* Form Content */}
-        <Animated.View 
-          style={[
-            styles.formSection,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }
-          ]}
-        >
-          {currentStep === 1 && (
-            <View style={styles.formCard}>
-              <BlurView intensity={20} style={styles.formBlur}>
-                <Text style={styles.stepTitle}>Step 1: Team Information</Text>
-                <InputField
-                  label="Team Name *"
-                  value={formData.teamName}
-                  onChangeText={(value) => handleInputChange('teamName', null, value)}
-                  placeholder="Enter your team name"
-                />
-              </BlurView>
+        <View style={styles.content}>
+          {/* Step Indicators */}
+          <Animated.View 
+            style={[
+              styles.stepsSection,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }
+            ]}
+          >
+            <View style={styles.stepsContainer}>
+              <StepIndicator
+                step={1}
+                title="Team Info"
+                isActive={currentStep === 1}
+                isCompleted={currentStep > 1}
+              />
+              <StepIndicator
+                step={2}
+                title="Team Lead"
+                isActive={currentStep === 2}
+                isCompleted={currentStep > 2}
+              />
+              <StepIndicator
+                step={3}
+                title="Members"
+                isActive={currentStep === 3}
+                isCompleted={currentStep > 3}
+              />
+              <StepIndicator
+                step={4}
+                title="Project"
+                isActive={currentStep === 4}
+                isCompleted={false}
+              />
             </View>
-          )}
+          </Animated.View>
 
-          {currentStep === 2 && (
-            <View style={styles.formCard}>
-              <BlurView intensity={20} style={styles.formBlur}>
-                <Text style={styles.stepTitle}>Step 2: Team Lead Details</Text>
-                <InputField
-                  label="Full Name *"
-                  value={formData.teamLead.name}
-                  onChangeText={(value) => handleInputChange('teamLead', 'name', value)}
-                  placeholder="Team lead's full name"
-                />
-                <InputField
-                  label="Email *"
-                  value={formData.teamLead.email}
-                  onChangeText={(value) => handleInputChange('teamLead', 'email', value)}
-                  placeholder="team.lead@email.com"
-                  keyboardType="email-address"
-                />
-                <InputField
-                  label="Phone *"
-                  value={formData.teamLead.phone}
-                  onChangeText={(value) => handleInputChange('teamLead', 'phone', value)}
-                  placeholder="+91 98765 43210"
-                  keyboardType="phone-pad"
-                />
-                <InputField
-                  label="College/University *"
-                  value={formData.teamLead.college}
-                  onChangeText={(value) => handleInputChange('teamLead', 'college', value)}
-                  placeholder="Your college or university name"
-                />
-              </BlurView>
-            </View>
-          )}
+          {/* Form Content */}
+          <Animated.View 
+            style={[
+              styles.formSection,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }
+            ]}
+          >
+            {currentStep === 1 && (
+              <View style={styles.formCard}>
+                <BlurView intensity={20} style={styles.formBlur}>
+                  <Text style={styles.stepTitle}>Step 1: Team Information</Text>
+                  <InputField
+                    label="Team Name *"
+                    value={formData.teamName}
+                    onChangeText={(value) => handleInputChange('teamName', null, value)}
+                    placeholder="Enter your team name"
+                    returnKeyType="done"
+                    onSubmitEditing={() => Keyboard.dismiss()}
+                  />
+                </BlurView>
+              </View>
+            )}
 
-          {currentStep === 3 && (
-            <View style={styles.formCard}>
-              <BlurView intensity={20} style={styles.formBlur}>
-                <View style={styles.stepHeader}>
-                  <Text style={styles.stepTitle}>Step 3: Team Members</Text>
-                  <TouchableOpacity style={styles.addButton} onPress={addMember}>
-                    <Ionicons name="add" size={20} color={COLORS.text} />
-                  </TouchableOpacity>
-                </View>
-                
-                {formData.members.map((member, index) => (
-                  <View key={index} style={styles.memberSection}>
-                    <View style={styles.memberHeader}>
-                      <Text style={styles.memberTitle}>Member {index + 1}</Text>
-                      {formData.members.length > 2 && (
-                        <TouchableOpacity 
-                          style={styles.removeButton}
-                          onPress={() => removeMember(index)}
-                        >
-                          <Ionicons name="close" size={16} color={COLORS.error} />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                    <InputField
-                      label="Full Name *"
-                      value={member.name}
-                      onChangeText={(value) => handleInputChange('members', 'name', value, index)}
-                      placeholder="Member's full name"
-                    />
-                    <InputField
-                      label="Email *"
-                      value={member.email}
-                      onChangeText={(value) => handleInputChange('members', 'email', value, index)}
-                      placeholder="member@email.com"
-                      keyboardType="email-address"
-                    />
-                    <InputField
-                      label="Phone *"
-                      value={member.phone}
-                      onChangeText={(value) => handleInputChange('members', 'phone', value, index)}
-                      placeholder="+91 98765 43210"
-                      keyboardType="phone-pad"
-                    />
-                    <InputField
-                      label="College/University *"
-                      value={member.college}
-                      onChangeText={(value) => handleInputChange('members', 'college', value, index)}
-                      placeholder="College or university name"
-                    />
+            {currentStep === 2 && (
+              <View style={styles.formCard}>
+                <BlurView intensity={20} style={styles.formBlur}>
+                  <Text style={styles.stepTitle}>Step 2: Team Lead Details</Text>
+                  <InputField
+                    label="Full Name *"
+                    value={formData.teamLead.name}
+                    onChangeText={(value) => handleInputChange('teamLead', 'name', value)}
+                    placeholder="Team lead's full name"
+                  />
+                  <InputField
+                    label="Email *"
+                    value={formData.teamLead.email}
+                    onChangeText={(value) => handleInputChange('teamLead', 'email', value)}
+                    placeholder="team.lead@email.com"
+                    keyboardType="email-address"
+                  />
+                  <InputField
+                    label="Phone *"
+                    value={formData.teamLead.phone}
+                    onChangeText={(value) => handleInputChange('teamLead', 'phone', value)}
+                    placeholder="+91 98765 43210"
+                    keyboardType="phone-pad"
+                  />
+                  <InputField
+                    label="College/University *"
+                    value={formData.teamLead.college}
+                    onChangeText={(value) => handleInputChange('teamLead', 'college', value)}
+                    placeholder="Your college or university name"
+                    returnKeyType="done"
+                    onSubmitEditing={() => Keyboard.dismiss()}
+                  />
+                </BlurView>
+              </View>
+            )}
+
+            {currentStep === 3 && (
+              <View style={styles.formCard}>
+                <BlurView intensity={20} style={styles.formBlur}>
+                  <View style={styles.stepHeader}>
+                    <Text style={styles.stepTitle}>Step 3: Team Members</Text>
+                    <TouchableOpacity style={styles.addButton} onPress={addMember}>
+                      <Ionicons name="add" size={20} color={COLORS.text} />
+                    </TouchableOpacity>
                   </View>
-                ))}
-              </BlurView>
-            </View>
-          )}
-
-          {currentStep === 4 && (
-            <View style={styles.formCard}>
-              <BlurView intensity={20} style={styles.formBlur}>
-                <Text style={styles.stepTitle}>Step 4: Project Details</Text>
-                <InputField
-                  label="Project Title *"
-                  value={formData.project.title}
-                  onChangeText={(value) => handleInputChange('project', 'title', value)}
-                  placeholder="Your project title"
-                />
-                <InputField
-                  label="Domain *"
-                  value={formData.project.domain}
-                  onChangeText={(value) => handleInputChange('project', 'domain', value)}
-                  placeholder="Education, Health, Agriculture, etc."
-                />
-                <InputField
-                  label="Problem Statement *"
-                  value={formData.project.problem}
-                  onChangeText={(value) => handleInputChange('project', 'problem', value)}
-                  placeholder="Describe the real-world problem you're solving"
-                  multiline={true}
-                />
-                <InputField
-                  label="Proposed Solution *"
-                  value={formData.project.solution}
-                  onChangeText={(value) => handleInputChange('project', 'solution', value)}
-                  placeholder="Explain your approach to solve the problem"
-                  multiline={true}
-                />
-                <InputField
-                  label="Technology Stack *"
-                  value={formData.project.techStack}
-                  onChangeText={(value) => handleInputChange('project', 'techStack', value)}
-                  placeholder="Technologies, frameworks, tools you'll use"
-                />
-              </BlurView>
-            </View>
-          )}
-
-          {/* Navigation Buttons */}
-          <View style={styles.navigationButtons}>
-            {currentStep > 1 && (
-              <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
-                <LinearGradient
-                  colors={[COLORS.surface, COLORS.background]}
-                  style={styles.prevButtonGradient}
-                >
-                  <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-                  <Text style={styles.prevButtonText}>Previous</Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                  
+                  {formData.members.map((member, index) => (
+                    <View key={index} style={styles.memberSection}>
+                      <View style={styles.memberHeader}>
+                        <Text style={styles.memberTitle}>Member {index + 1}</Text>
+                        {formData.members.length > 2 && (
+                          <TouchableOpacity 
+                            style={styles.removeButton}
+                            onPress={() => removeMember(index)}
+                          >
+                            <Ionicons name="close" size={16} color={COLORS.error} />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                      <InputField
+                        label="Full Name *"
+                        value={member.name}
+                        onChangeText={(value) => handleInputChange('members', 'name', value, index)}
+                        placeholder="Member's full name"
+                      />
+                      <InputField
+                        label="Email *"
+                        value={member.email}
+                        onChangeText={(value) => handleInputChange('members', 'email', value, index)}
+                        placeholder="member@email.com"
+                        keyboardType="email-address"
+                      />
+                      <InputField
+                        label="Phone *"
+                        value={member.phone}
+                        onChangeText={(value) => handleInputChange('members', 'phone', value, index)}
+                        placeholder="+91 98765 43210"
+                        keyboardType="phone-pad"
+                      />
+                      <InputField
+                        label="College/University *"
+                        value={member.college}
+                        onChangeText={(value) => handleInputChange('members', 'college', value, index)}
+                        placeholder="College or university name"
+                        returnKeyType={index === formData.members.length - 1 ? "done" : "next"}
+                        onSubmitEditing={index === formData.members.length - 1 ? () => Keyboard.dismiss() : null}
+                      />
+                    </View>
+                  ))}
+                </BlurView>
+              </View>
             )}
-            
-            {currentStep < 4 ? (
-              <TouchableOpacity style={styles.nextButton} onPress={nextStep}>
-                <LinearGradient
-                  colors={[COLORS.primary, COLORS.secondary]}
-                  style={styles.nextButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={styles.nextButtonText}>Next</Text>
-                  <Ionicons name="arrow-forward" size={20} color={COLORS.text} />
-                </LinearGradient>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <LinearGradient
-                  colors={[COLORS.success, COLORS.accent]}
-                  style={styles.submitButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={styles.submitButtonText}>Submit Registration</Text>
-                  <Ionicons name="checkmark" size={20} color={COLORS.text} />
-                </LinearGradient>
-              </TouchableOpacity>
+
+            {currentStep === 4 && (
+              <View style={styles.formCard}>
+                <BlurView intensity={20} style={styles.formBlur}>
+                  <Text style={styles.stepTitle}>Step 4: Project Details</Text>
+                  <InputField
+                    label="Project Title *"
+                    value={formData.project.title}
+                    onChangeText={(value) => handleInputChange('project', 'title', value)}
+                    placeholder="Your project title"
+                  />
+                  <InputField
+                    label="Domain *"
+                    value={formData.project.domain}
+                    onChangeText={(value) => handleInputChange('project', 'domain', value)}
+                    placeholder="Education, Health, Agriculture, etc."
+                  />
+                  <InputField
+                    label="Problem Statement *"
+                    value={formData.project.problem}
+                    onChangeText={(value) => handleInputChange('project', 'problem', value)}
+                    placeholder="Describe the real-world problem you're solving"
+                    multiline={true}
+                    blurOnSubmit={false}
+                  />
+                  <InputField
+                    label="Proposed Solution *"
+                    value={formData.project.solution}
+                    onChangeText={(value) => handleInputChange('project', 'solution', value)}
+                    placeholder="Explain your approach to solve the problem"
+                    multiline={true}
+                    blurOnSubmit={false}
+                  />
+                  <InputField
+                    label="Technology Stack *"
+                    value={formData.project.techStack}
+                    onChangeText={(value) => handleInputChange('project', 'techStack', value)}
+                    placeholder="Technologies, frameworks, tools you'll use"
+                    returnKeyType="done"
+                    onSubmitEditing={() => Keyboard.dismiss()}
+                  />
+                </BlurView>
+              </View>
             )}
-          </View>
-        </Animated.View>
 
-        {/* Quick Links */}
-        <Animated.View 
-          style={[
-            styles.linksSection,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }
-          ]}
-        >
-          <Text style={styles.sectionTitle}>Quick Links</Text>
-          <View style={styles.linksGrid}>
-            <TouchableOpacity 
-              style={styles.linkCard}
-              onPress={() => navigation.navigate('Home')}
-            >
-              <BlurView intensity={20} style={styles.linkBlur}>
-                <Ionicons name="home" size={24} color={COLORS.success} />
-                <Text style={styles.linkTitle}>Home</Text>
-              </BlurView>
-            </TouchableOpacity>
+            {/* Navigation Buttons */}
+            <View style={styles.navigationButtons}>
+              {currentStep > 1 && (
+                <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
+                  <LinearGradient
+                    colors={[COLORS.surface, COLORS.background]}
+                    style={styles.prevButtonGradient}
+                  >
+                    <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+                    <Text style={styles.prevButtonText}>Previous</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+              
+              {currentStep < 4 ? (
+                <TouchableOpacity style={styles.nextButton} onPress={nextStep}>
+                  <LinearGradient
+                    colors={[COLORS.primary, COLORS.secondary]}
+                    style={styles.nextButtonGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Text style={styles.nextButtonText}>Next</Text>
+                    <Ionicons name="arrow-forward" size={20} color={COLORS.text} />
+                  </LinearGradient>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                  <LinearGradient
+                    colors={[COLORS.success, COLORS.accent]}
+                    style={styles.submitButtonGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Text style={styles.submitButtonText}>Submit Registration</Text>
+                    <Ionicons name="checkmark" size={20} color={COLORS.text} />
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+            </View>
+          </Animated.View>
 
-            <TouchableOpacity 
-              style={styles.linkCard}
-              onPress={() => handleQuickLinkPress('Prizes')}
-            >
-              <BlurView intensity={20} style={styles.linkBlur}>
-                <Ionicons name="trophy" size={24} color={COLORS.primary} />
-                <Text style={styles.linkTitle}>Prizes</Text>
-              </BlurView>
-            </TouchableOpacity>
+          {/* Quick Links */}
+          <Animated.View 
+            style={[
+              styles.linksSection,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }
+            ]}
+          >
+            <Text style={styles.sectionTitle}>Quick Links</Text>
+            <View style={styles.linksGrid}>
+              <TouchableOpacity 
+                style={styles.linkCard}
+                onPress={() => navigation.navigate('Home')}
+              >
+                <BlurView intensity={20} style={styles.linkBlur}>
+                  <Ionicons name="home" size={24} color={COLORS.success} />
+                  <Text style={styles.linkTitle}>Home</Text>
+                </BlurView>
+              </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.linkCard}
-              onPress={() => handleQuickLinkPress('Contact')}
-            >
-              <BlurView intensity={20} style={styles.linkBlur}>
-                <Ionicons name="call" size={24} color={COLORS.accent} />
-                <Text style={styles.linkTitle}>Contact</Text>
-              </BlurView>
-            </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.linkCard}
+                onPress={() => handleQuickLinkPress('Prizes')}
+              >
+                <BlurView intensity={20} style={styles.linkBlur}>
+                  <Ionicons name="trophy" size={24} color={COLORS.primary} />
+                  <Text style={styles.linkTitle}>Prizes</Text>
+                </BlurView>
+              </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.linkCard}
-              onPress={() => handleQuickLinkPress('Contact')}
-            >
-              <BlurView intensity={20} style={styles.linkBlur}>
-                <Ionicons name="help-circle" size={24} color={COLORS.secondary} />
-                <Text style={styles.linkTitle}>Help</Text>
-              </BlurView>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </View>
-    </ScrollView>
+              <TouchableOpacity 
+                style={styles.linkCard}
+                onPress={() => handleQuickLinkPress('Contact')}
+              >
+                <BlurView intensity={20} style={styles.linkBlur}>
+                  <Ionicons name="call" size={24} color={COLORS.accent} />
+                  <Text style={styles.linkTitle}>Contact</Text>
+                </BlurView>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.linkCard}
+                onPress={() => handleQuickLinkPress('Contact')}
+              >
+                <BlurView intensity={20} style={styles.linkBlur}>
+                  <Ionicons name="help-circle" size={24} color={COLORS.secondary} />
+                  <Text style={styles.linkTitle}>Help</Text>
+                </BlurView>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -537,6 +574,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     height: 200,
@@ -643,6 +686,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    minHeight: 50,
   },
   textArea: {
     height: 80,
