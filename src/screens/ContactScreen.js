@@ -425,6 +425,56 @@ Please get back to me soon!`;
               </BlurView>
             </TouchableOpacity>
           </View>
+
+          {/* Developer Contact Icons */}
+          <Animated.View 
+            style={[
+              styles.linksSection,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }
+            ]}
+          >
+            <Text style={styles.sectionTitle}>App Developer Contact</Text>
+            <View style={styles.linksGrid}>
+              <TouchableOpacity 
+                style={styles.linkCard}
+                onPress={() => Linking.openURL('mailto:amareshkoti2005@gmail.com')}
+              >
+                <BlurView intensity={20} style={styles.linkBlur}>
+                  <Ionicons name="mail" size={32} color={COLORS.accent} />
+                </BlurView>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.linkCard}
+                onPress={() => Linking.openURL('https://www.linkedin.com/in/amaresh1411/')}
+              >
+                <BlurView intensity={20} style={styles.linkBlur}>
+                  <Ionicons name="logo-linkedin" size={32} color={COLORS.primary} />
+                </BlurView>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.linkCard}
+                onPress={() => Linking.openURL('https://www.instagram.com/escaped_nigga_1865/')}
+              >
+                <BlurView intensity={20} style={styles.linkBlur}>
+                  <Ionicons name="logo-instagram" size={32} color={COLORS.warning} />
+                </BlurView>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.linkCard}
+                onPress={() => Linking.openURL('https://wa.me/8179949657')}
+              >
+                <BlurView intensity={20} style={styles.linkBlur}>
+                  <Ionicons name="logo-whatsapp" size={32} color={COLORS.success} />
+                </BlurView>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
         </Animated.View>
       </View>
     </ScrollView>
