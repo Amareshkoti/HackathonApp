@@ -15,6 +15,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
+import { contactService } from '../services/contactService';
 
 const ContactScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -76,7 +77,7 @@ const ContactScreen = ({ navigation }) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name || !formData.email || !formData.subject || !formData.message) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -85,8 +86,13 @@ const ContactScreen = ({ navigation }) => {
     setIsSubmitting(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Create WhatsApp message with form data
-    const whatsappMessage = `Hello! I'm interested in Piston Cup 2025.
+    try {
+      // Submit to Supabase
+      const result = await contactService.submitContact(formData);
+
+      if (result.success) {
+        // Create WhatsApp message with form data
+        const whatsappMessage = `Hello! I'm interested in Piston Cup 2025.
 
 Name: ${formData.name}
 Email: ${formData.email}
@@ -95,15 +101,30 @@ Message: ${formData.message}
 
 Please get back to me soon!`;
 
-    const whatsappUrl = `https://wa.me/919515858968?text=${encodeURIComponent(whatsappMessage)}`;
+        const whatsappUrl = `https://wa.me/919515858968?text=${encodeURIComponent(whatsappMessage)}`;
 
-    // Open WhatsApp with the message
-    Linking.openURL(whatsappUrl).catch(() => {
-      Alert.alert('Error', 'Could not open WhatsApp. Please make sure WhatsApp is installed.');
-    });
+        // Open WhatsApp with the message
+        Linking.openURL(whatsappUrl).catch(() => {
+          Alert.alert('Error', 'Could not open WhatsApp. Please make sure WhatsApp is installed.');
+        });
 
-    setIsSubmitting(false);
-    setFormData({ name: '', email: '', subject: '', message: '' });
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        Alert.alert(
+          'Submission Failed',
+          `Error: ${result.error}. Please try again.`,
+          [{ text: 'OK', style: 'default' }]
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Submission Failed',
+        'An unexpected error occurred. Please check your internet connection and try again.',
+        [{ text: 'OK', style: 'default' }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleQuickLinkPress = (screen) => {

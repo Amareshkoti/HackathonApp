@@ -17,6 +17,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
+import { teamService } from '../services/teamService';
 
 const RegistrationScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -175,7 +176,7 @@ const RegistrationScreen = ({ navigation }) => {
           member.name.trim() && member.email.trim() && member.phone.trim() && member.college.trim()
         );
         if (validMembers.length < 2) {
-          Alert.alert('Error', 'Please fill details for at least 2 team members');
+          Alert.alert('Error', 'Please fill details for at least 2 team members (minimum team size: 3 total including team lead)');
           return false;
         }
         break;
@@ -190,41 +191,66 @@ const RegistrationScreen = ({ navigation }) => {
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateCurrentStep()) {
       setIsSubmitting(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-      // Simulate form submission
-      setTimeout(() => {
-        setIsSubmitting(false);
+      try {
+        // Prepare data for Supabase
+        const teamData = {
+          teamName: inputRefs.current.teamName,
+          teamLead: inputRefs.current.teamLead,
+          members: inputRefs.current.members,
+          project: inputRefs.current.project,
+        };
+
+        const result = await teamService.registerTeam(teamData);
+
+        if (result.success) {
+          Alert.alert(
+            'Registration Successful!',
+            `Your team has been registered for Piston Cup 2025. Team ID: ${result.teamId}. We will contact you soon with further details.`,
+            [{ text: 'OK', style: 'default' }]
+          );
+          
+          // Reset form
+          setFormData({
+            teamName: '',
+            teamLead: { name: '', email: '', phone: '', college: '' },
+            members: [
+              { name: '', email: '', phone: '', college: '' },
+              { name: '', email: '', phone: '', college: '' },
+            ],
+            project: { title: '', domain: '', problem: '', solution: '', techStack: '' },
+          });
+          // Reset stateless variables
+          inputRefs.current = {
+            teamName: '',
+            teamLead: { name: '', email: '', phone: '', college: '' },
+            members: [
+              { name: '', email: '', phone: '', college: '' },
+              { name: '', email: '', phone: '', college: '' },
+            ],
+            project: { title: '', domain: '', problem: '', solution: '', techStack: '' },
+          };
+          setCurrentStep(1);
+        } else {
+          Alert.alert(
+            'Registration Failed',
+            `Error: ${result.error}. Please try again.`,
+            [{ text: 'OK', style: 'default' }]
+          );
+        }
+      } catch (error) {
         Alert.alert(
-          'Registration Successful!',
-          'Your team has been registered for Piston Cup 2025. We will contact you soon with further details.',
+          'Registration Failed',
+          'An unexpected error occurred. Please check your internet connection and try again.',
           [{ text: 'OK', style: 'default' }]
         );
-        // Reset form
-        setFormData({
-          teamName: '',
-          teamLead: { name: '', email: '', phone: '', college: '' },
-          members: [
-            { name: '', email: '', phone: '', college: '' },
-            { name: '', email: '', phone: '', college: '' },
-          ],
-          project: { title: '', domain: '', problem: '', solution: '', techStack: '' },
-        });
-        // Reset stateless variables
-        inputRefs.current = {
-          teamName: '',
-          teamLead: { name: '', email: '', phone: '', college: '' },
-          members: [
-            { name: '', email: '', phone: '', college: '' },
-            { name: '', email: '', phone: '', college: '' },
-          ],
-          project: { title: '', domain: '', problem: '', solution: '', techStack: '' },
-        };
-        setCurrentStep(1);
-      }, 2000);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
