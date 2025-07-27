@@ -16,7 +16,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 
-const ContactScreen = () => {
+const ContactScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -82,16 +82,29 @@ const ContactScreen = () => {
     setIsSubmitting(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      Alert.alert(
-        'Message Sent!',
-        'Thank you for contacting us. We will get back to you soon!',
-        [{ text: 'OK', style: 'default' }]
-      );
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 2000);
+    // Create WhatsApp message with form data
+    const whatsappMessage = `Hello! I'm interested in Piston Cup 2025.
+
+Name: ${formData.name}
+Email: ${formData.email}
+Subject: ${formData.subject}
+Message: ${formData.message}
+
+Please get back to me soon!`;
+
+    const whatsappUrl = `https://wa.me/919515858968?text=${encodeURIComponent(whatsappMessage)}`;
+
+    // Open WhatsApp with the message
+    Linking.openURL(whatsappUrl).catch(() => {
+      Alert.alert('Error', 'Could not open WhatsApp. Please make sure WhatsApp is installed.');
+    });
+
+    setIsSubmitting(false);
+    setFormData({ name: '', email: '', subject: '', message: '' });
+  };
+
+  const handleQuickLinkPress = (screen) => {
+    navigation.navigate(screen);
   };
 
   const ContactCard = ({ icon, title, value, type, color }) => (
@@ -158,7 +171,14 @@ const ContactScreen = () => {
             <ContactCard
               icon="call"
               title="Phone"
-              value="+91 98765 43210"
+              value="+91 95158 58968"
+              type="phone"
+              color={COLORS.success}
+            />
+            <ContactCard
+              icon="logo-whatsapp"
+              title="WhatsApp"
+              value="+91 95158 58968"
               type="phone"
               color={COLORS.success}
             />
@@ -175,13 +195,6 @@ const ContactScreen = () => {
               value="VIIT, Duvvada"
               type="location"
               color={COLORS.primary}
-            />
-            <ContactCard
-              icon="globe"
-              title="Website"
-              value="www.viit.ac.in"
-              type="website"
-              color={COLORS.secondary}
             />
           </View>
         </Animated.View>
@@ -323,11 +336,11 @@ const ContactScreen = () => {
                   end={{ x: 1, y: 0 }}
                 >
                   {isSubmitting ? (
-                    <Text style={styles.submitButtonText}>Sending...</Text>
+                    <Text style={styles.submitButtonText}>Opening WhatsApp...</Text>
                   ) : (
                     <>
-                      <Text style={styles.submitButtonText}>Send Message</Text>
-                      <Ionicons name="send" size={20} color={COLORS.text} />
+                      <Text style={styles.submitButtonText}>Send via WhatsApp</Text>
+                      <Ionicons name="logo-whatsapp" size={20} color={COLORS.text} />
                     </>
                   )}
                 </LinearGradient>
@@ -348,31 +361,43 @@ const ContactScreen = () => {
         >
           <Text style={styles.sectionTitle}>Quick Links</Text>
           <View style={styles.linksGrid}>
-            <TouchableOpacity style={styles.linkCard}>
+            <TouchableOpacity 
+              style={styles.linkCard}
+              onPress={() => handleQuickLinkPress('Register')}
+            >
               <BlurView intensity={20} style={styles.linkBlur}>
-                <Ionicons name="document-text" size={24} color={COLORS.accent} />
+                <Ionicons name="person-add" size={24} color={COLORS.accent} />
                 <Text style={styles.linkTitle}>Registration</Text>
               </BlurView>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.linkCard}>
-              <BlurView intensity={20} style={styles.linkBlur}>
-                <Ionicons name="calendar" size={24} color={COLORS.secondary} />
-                <Text style={styles.linkTitle}>Schedule</Text>
-              </BlurView>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.linkCard}>
+            <TouchableOpacity 
+              style={styles.linkCard}
+              onPress={() => handleQuickLinkPress('Prizes')}
+            >
               <BlurView intensity={20} style={styles.linkBlur}>
                 <Ionicons name="trophy" size={24} color={COLORS.primary} />
                 <Text style={styles.linkTitle}>Prizes</Text>
               </BlurView>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.linkCard}>
+            <TouchableOpacity 
+              style={styles.linkCard}
+              onPress={() => navigation.navigate('Home')}
+            >
               <BlurView intensity={20} style={styles.linkBlur}>
-                <Ionicons name="information-circle" size={24} color={COLORS.success} />
-                <Text style={styles.linkTitle}>About</Text>
+                <Ionicons name="home" size={24} color={COLORS.success} />
+                <Text style={styles.linkTitle}>Home</Text>
+              </BlurView>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.linkCard}
+              onPress={() => handleQuickLinkPress('Register')}
+            >
+              <BlurView intensity={20} style={styles.linkBlur}>
+                <Ionicons name="car-sport" size={24} color={COLORS.secondary} />
+                <Text style={styles.linkTitle}>Join Now</Text>
               </BlurView>
             </TouchableOpacity>
           </View>

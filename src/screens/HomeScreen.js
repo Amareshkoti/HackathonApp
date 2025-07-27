@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +14,7 @@ import { COLORS } from '../constants/colors';
 
 const { width, height } = Dimensions.get('window');
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -56,6 +57,14 @@ const HomeScreen = () => {
     </View>
   );
 
+  const handleRegisterPress = () => {
+    navigation.navigate('Register');
+  };
+
+  const handleQuickLinkPress = (screen) => {
+    navigation.navigate(screen);
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Hero Section */}
@@ -75,7 +84,7 @@ const HomeScreen = () => {
             </Text>
             <Text style={styles.heroDate}>September 3rd - 4th, 2025</Text>
             
-            <TouchableOpacity style={styles.ctaButton}>
+            <TouchableOpacity style={styles.ctaButton} onPress={handleRegisterPress}>
               <LinearGradient
                 colors={[COLORS.primary, COLORS.secondary]}
                 style={styles.ctaGradient}
@@ -140,6 +149,136 @@ const HomeScreen = () => {
         </View>
       </View>
 
+      {/* About Section */}
+      <View style={styles.aboutSection}>
+        <Text style={styles.sectionTitle}>About Piston Cup</Text>
+        <View style={styles.aboutCard}>
+          <View style={styles.aboutContent}>
+            <Text style={styles.aboutText}>
+              Piston Cup 2025 is a prestigious 24-hour hackathon that brings together the brightest minds 
+              to solve real-world problems. Teams of 3-5 members will compete across three challenging rounds, 
+              from ideation to final implementation.
+            </Text>
+            
+            <View style={styles.roundsContainer}>
+              <View style={styles.roundItem}>
+                <View style={styles.roundIcon}>
+                  <Ionicons name="bulb" size={20} color={COLORS.accent} />
+                </View>
+                <View style={styles.roundContent}>
+                  <Text style={styles.roundTitle}>Round 1: Ideation</Text>
+                  <Text style={styles.roundText}>Submit innovative ideas by August 2nd</Text>
+                </View>
+              </View>
+
+              <View style={styles.roundItem}>
+                <View style={styles.roundIcon}>
+                  <Ionicons name="construct" size={20} color={COLORS.secondary} />
+                </View>
+                <View style={styles.roundContent}>
+                  <Text style={styles.roundTitle}>Round 2: Prototype</Text>
+                  <Text style={styles.roundText}>Create and present prototypes</Text>
+                </View>
+              </View>
+
+              <View style={styles.roundItem}>
+                <View style={styles.roundIcon}>
+                  <Ionicons name="trophy" size={20} color={COLORS.primary} />
+                </View>
+                <View style={styles.roundContent}>
+                  <Text style={styles.roundTitle}>Round 3: Final</Text>
+                  <Text style={styles.roundText}>24-hour hackathon at VIIT, Duvvada</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Schedule Section */}
+      <View style={styles.scheduleSection}>
+        <Text style={styles.sectionTitle}>Event Schedule</Text>
+        <View style={styles.scheduleCard}>
+          <View style={styles.scheduleContent}>
+            <View style={styles.scheduleItem}>
+              <View style={styles.scheduleDate}>
+                <Text style={styles.dateText}>AUG 2</Text>
+              </View>
+              <View style={styles.scheduleDetails}>
+                <Text style={styles.scheduleTitle}>Round 1 Deadline</Text>
+                <Text style={styles.scheduleText}>Last day to submit team registrations</Text>
+              </View>
+            </View>
+
+            <View style={styles.scheduleItem}>
+              <View style={styles.scheduleDate}>
+                <Text style={styles.dateText}>AUG 4</Text>
+              </View>
+              <View style={styles.scheduleDetails}>
+                <Text style={styles.scheduleTitle}>Results Announcement</Text>
+                <Text style={styles.scheduleText}>Selected teams for Round 2 notified</Text>
+              </View>
+            </View>
+
+            <View style={styles.scheduleItem}>
+              <View style={styles.scheduleDate}>
+                <Text style={styles.dateText}>SEP 3-4</Text>
+              </View>
+              <View style={styles.scheduleDetails}>
+                <Text style={styles.scheduleTitle}>Final Hackathon</Text>
+                <Text style={styles.scheduleText}>24-hour coding marathon at VIIT</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Quick Links Section */}
+      <View style={styles.linksSection}>
+        <Text style={styles.sectionTitle}>Quick Links</Text>
+        <View style={styles.linksGrid}>
+          <TouchableOpacity 
+            style={styles.linkCard}
+            onPress={() => handleQuickLinkPress('Register')}
+          >
+            <View style={styles.linkBlur}>
+              <Ionicons name="person-add" size={24} color={COLORS.accent} />
+              <Text style={styles.linkTitle}>Registration</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.linkCard}
+            onPress={() => handleQuickLinkPress('Prizes')}
+          >
+            <View style={styles.linkBlur}>
+              <Ionicons name="trophy" size={24} color={COLORS.primary} />
+              <Text style={styles.linkTitle}>Prizes</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.linkCard}
+            onPress={() => handleQuickLinkPress('Contact')}
+          >
+            <View style={styles.linkBlur}>
+              <Ionicons name="call" size={24} color={COLORS.success} />
+              <Text style={styles.linkTitle}>Contact</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.linkCard}
+            onPress={handleRegisterPress}
+          >
+            <View style={styles.linkBlur}>
+              <Ionicons name="car-sport" size={24} color={COLORS.secondary} />
+              <Text style={styles.linkTitle}>Join Now</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Call to Action */}
       <View style={styles.ctaSection}>
         <LinearGradient
@@ -150,8 +289,8 @@ const HomeScreen = () => {
           <Text style={styles.ctaSectionText}>
             Join the ultimate hackathon experience and solve real-world problems
           </Text>
-          <TouchableOpacity style={styles.secondaryCtaButton}>
-            <Text style={styles.secondaryCtaText}>Learn More</Text>
+          <TouchableOpacity style={styles.secondaryCtaButton} onPress={handleRegisterPress}>
+            <Text style={styles.secondaryCtaText}>Register Team</Text>
           </TouchableOpacity>
         </LinearGradient>
       </View>
@@ -165,7 +304,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   heroSection: {
-    height: height * 0.7,
+    height: height * 0.6,
     justifyContent: 'center',
   },
   heroGradient: {
@@ -293,6 +432,123 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSecondary,
     marginTop: 5,
+  },
+  aboutSection: {
+    padding: 20,
+  },
+  aboutCard: {
+    borderRadius: 15,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(22, 33, 62, 0.8)',
+  },
+  aboutContent: {
+    padding: 20,
+  },
+  aboutText: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  roundsContainer: {
+    marginTop: 15,
+  },
+  roundItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 15,
+  },
+  roundIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  roundContent: {
+    flex: 1,
+  },
+  roundTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 5,
+  },
+  roundText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+  },
+  scheduleSection: {
+    padding: 20,
+  },
+  scheduleCard: {
+    borderRadius: 15,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(22, 33, 62, 0.8)',
+  },
+  scheduleContent: {
+    padding: 20,
+  },
+  scheduleItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  scheduleDate: {
+    width: 80,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  dateText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: COLORS.text,
+  },
+  scheduleDetails: {
+    flex: 1,
+  },
+  scheduleTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 5,
+  },
+  scheduleText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+  },
+  linksSection: {
+    padding: 20,
+  },
+  linksGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  linkCard: {
+    width: '48%',
+    marginBottom: 15,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  linkBlur: {
+    padding: 20,
+    alignItems: 'center',
+    backgroundColor: 'rgba(22, 33, 62, 0.8)',
+  },
+  linkTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginTop: 10,
   },
   ctaSection: {
     padding: 20,

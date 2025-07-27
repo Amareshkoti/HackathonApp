@@ -12,9 +12,7 @@ import { COLORS } from './src/constants/colors';
 
 // Import screens
 import HomeScreen from './src/screens/HomeScreen';
-import AboutScreen from './src/screens/AboutScreen';
 import RegistrationScreen from './src/screens/RegistrationScreen';
-import ScheduleScreen from './src/screens/ScheduleScreen';
 import PrizesScreen from './src/screens/PrizesScreen';
 import ContactScreen from './src/screens/ContactScreen';
 
@@ -30,12 +28,8 @@ function TabNavigator() {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'About') {
-            iconName = focused ? 'information-circle' : 'information-circle-outline';
           } else if (route.name === 'Register') {
             iconName = focused ? 'person-add' : 'person-add-outline';
-          } else if (route.name === 'Schedule') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
           } else if (route.name === 'Prizes') {
             iconName = focused ? 'trophy' : 'trophy-outline';
           } else if (route.name === 'Contact') {
@@ -71,19 +65,9 @@ function TabNavigator() {
         options={{ headerShown: false }}
       />
       <Tab.Screen 
-        name="About" 
-        component={AboutScreen}
-        options={{ title: 'About Piston Cup' }}
-      />
-      <Tab.Screen 
         name="Register" 
         component={RegistrationScreen}
         options={{ title: 'Team Registration' }}
-      />
-      <Tab.Screen 
-        name="Schedule" 
-        component={ScheduleScreen}
-        options={{ title: 'Event Schedule' }}
       />
       <Tab.Screen 
         name="Prizes" 
