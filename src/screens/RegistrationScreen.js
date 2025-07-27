@@ -42,6 +42,17 @@ const RegistrationScreen = ({ navigation }) => {
     },
   });
 
+  // Stateless variables for input values
+  const inputRefs = useRef({
+    teamName: '',
+    teamLead: { name: '', email: '', phone: '', college: '' },
+    members: [
+      { name: '', email: '', phone: '', college: '' },
+      { name: '', email: '', phone: '', college: '' },
+    ],
+    project: { title: '', domain: '', problem: '', solution: '', techStack: '' },
+  });
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -68,17 +79,41 @@ const RegistrationScreen = ({ navigation }) => {
     ]).start();
   }, []);
 
+  // Initialize input refs with current form data
+  React.useEffect(() => {
+    inputRefs.current = {
+      teamName: formData.teamName,
+      teamLead: { ...formData.teamLead },
+      members: formData.members.map(member => ({ ...member })),
+      project: { ...formData.project },
+    };
+  }, [formData]);
+
   const handleInputChange = (section, field, value, index = null) => {
+    // Update stateless variable immediately
+    if (index !== null) {
+      inputRefs.current[section][index][field] = value;
+    } else if (section === 'teamLead') {
+      inputRefs.current.teamLead[field] = value;
+    } else if (section === 'project') {
+      inputRefs.current.project[field] = value;
+    } else {
+      inputRefs.current[section] = value;
+    }
+  };
+
+  const handleInputEndEditing = (section, field, index = null) => {
+    // Update state only when user finishes editing
     setFormData(prev => {
       const newData = { ...prev };
       if (index !== null) {
-        newData[section][index][field] = value;
+        newData[section][index][field] = inputRefs.current[section][index][field];
       } else if (section === 'teamLead') {
-        newData.teamLead[field] = value;
+        newData.teamLead[field] = inputRefs.current.teamLead[field];
       } else if (section === 'project') {
-        newData.project[field] = value;
+        newData.project[field] = inputRefs.current.project[field];
       } else {
-        newData[section] = value;
+        newData[section] = inputRefs.current[section];
       }
       return newData;
     });
@@ -90,6 +125,8 @@ const RegistrationScreen = ({ navigation }) => {
         ...prev,
         members: [...prev.members, { name: '', email: '', phone: '', college: '' }],
       }));
+      // Add to stateless variable as well
+      inputRefs.current.members.push({ name: '', email: '', phone: '', college: '' });
     }
   };
 
@@ -99,6 +136,8 @@ const RegistrationScreen = ({ navigation }) => {
         ...prev,
         members: prev.members.filter((_, i) => i !== index),
       }));
+      // Remove from stateless variable as well
+      inputRefs.current.members.splice(index, 1);
     }
   };
 
@@ -106,7 +145,6 @@ const RegistrationScreen = ({ navigation }) => {
     if (validateCurrentStep()) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setCurrentStep(prev => Math.min(prev + 1, 4));
-      // Scroll to top when changing steps
       scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: true });
     }
   };
@@ -114,27 +152,26 @@ const RegistrationScreen = ({ navigation }) => {
   const prevStep = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCurrentStep(prev => Math.max(prev - 1, 1));
-    // Scroll to top when changing steps
     scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: true });
   };
 
   const validateCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        if (!formData.teamName.trim()) {
+        if (!inputRefs.current.teamName.trim()) {
           Alert.alert('Error', 'Please enter team name');
           return false;
         }
         break;
       case 2:
-        const { name, email, phone, college } = formData.teamLead;
+        const { name, email, phone, college } = inputRefs.current.teamLead;
         if (!name.trim() || !email.trim() || !phone.trim() || !college.trim()) {
           Alert.alert('Error', 'Please fill all team lead details');
           return false;
         }
         break;
       case 3:
-        const validMembers = formData.members.filter(member => 
+        const validMembers = inputRefs.current.members.filter(member => 
           member.name.trim() && member.email.trim() && member.phone.trim() && member.college.trim()
         );
         if (validMembers.length < 2) {
@@ -143,7 +180,7 @@ const RegistrationScreen = ({ navigation }) => {
         }
         break;
       case 4:
-        const { title, domain, problem, solution, techStack } = formData.project;
+        const { title, domain, problem, solution, techStack } = inputRefs.current.project;
         if (!title.trim() || !domain.trim() || !problem.trim() || !solution.trim() || !techStack.trim()) {
           Alert.alert('Error', 'Please fill all project details');
           return false;
@@ -176,6 +213,16 @@ const RegistrationScreen = ({ navigation }) => {
           ],
           project: { title: '', domain: '', problem: '', solution: '', techStack: '' },
         });
+        // Reset stateless variables
+        inputRefs.current = {
+          teamName: '',
+          teamLead: { name: '', email: '', phone: '', college: '' },
+          members: [
+            { name: '', email: '', phone: '', college: '' },
+            { name: '', email: '', phone: '', college: '' },
+          ],
+          project: { title: '', domain: '', problem: '', solution: '', techStack: '' },
+        };
         setCurrentStep(1);
       }, 2000);
     }
@@ -208,13 +255,25 @@ const RegistrationScreen = ({ navigation }) => {
     </View>
   );
 
-  const InputField = ({ label, value, onChangeText, placeholder, keyboardType = 'default', multiline = false, returnKeyType = 'next', onSubmitEditing = null, blurOnSubmit = true }) => (
+  const InputField = ({ 
+    label, 
+    defaultValue, 
+    placeholder, 
+    keyboardType = 'default', 
+    multiline = false, 
+    returnKeyType = 'next', 
+    onSubmitEditing = null, 
+    blurOnSubmit = true,
+    onEndEditing = null,
+    section,
+    field,
+    index = null
+  }) => (
     <View style={styles.inputGroup}>
       <Text style={styles.inputLabel}>{label}</Text>
       <TextInput
         style={[styles.textInput, multiline && styles.textArea]}
-        value={value}
-        onChangeText={onChangeText}
+        defaultValue={defaultValue}
         placeholder={placeholder}
         placeholderTextColor={COLORS.textSecondary}
         keyboardType={keyboardType}
@@ -227,6 +286,11 @@ const RegistrationScreen = ({ navigation }) => {
         autoCapitalize={keyboardType === 'email-address' ? 'none' : 'words'}
         autoCorrect={false}
         spellCheck={false}
+        onChangeText={(text) => handleInputChange(section, field, text, index)}
+        onEndEditing={(e) => {
+          handleInputEndEditing(section, field, index);
+          if (onEndEditing) onEndEditing(e);
+        }}
       />
     </View>
   );
@@ -243,6 +307,7 @@ const RegistrationScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
+        removeClippedSubviews={false}
       >
         <Animated.View 
           style={[
@@ -322,11 +387,12 @@ const RegistrationScreen = ({ navigation }) => {
                   <Text style={styles.stepTitle}>Step 1: Team Information</Text>
                   <InputField
                     label="Team Name *"
-                    value={formData.teamName}
-                    onChangeText={(value) => handleInputChange('teamName', null, value)}
+                    defaultValue={formData.teamName}
                     placeholder="Enter your team name"
                     returnKeyType="done"
                     onSubmitEditing={() => Keyboard.dismiss()}
+                    section="teamName"
+                    field=""
                   />
                 </BlurView>
               </View>
@@ -338,31 +404,35 @@ const RegistrationScreen = ({ navigation }) => {
                   <Text style={styles.stepTitle}>Step 2: Team Lead Details</Text>
                   <InputField
                     label="Full Name *"
-                    value={formData.teamLead.name}
-                    onChangeText={(value) => handleInputChange('teamLead', 'name', value)}
+                    defaultValue={formData.teamLead.name}
                     placeholder="Team lead's full name"
+                    section="teamLead"
+                    field="name"
                   />
                   <InputField
                     label="Email *"
-                    value={formData.teamLead.email}
-                    onChangeText={(value) => handleInputChange('teamLead', 'email', value)}
+                    defaultValue={formData.teamLead.email}
                     placeholder="team.lead@email.com"
                     keyboardType="email-address"
+                    section="teamLead"
+                    field="email"
                   />
                   <InputField
                     label="Phone *"
-                    value={formData.teamLead.phone}
-                    onChangeText={(value) => handleInputChange('teamLead', 'phone', value)}
+                    defaultValue={formData.teamLead.phone}
                     placeholder="+91 98765 43210"
                     keyboardType="phone-pad"
+                    section="teamLead"
+                    field="phone"
                   />
                   <InputField
                     label="College/University *"
-                    value={formData.teamLead.college}
-                    onChangeText={(value) => handleInputChange('teamLead', 'college', value)}
+                    defaultValue={formData.teamLead.college}
                     placeholder="Your college or university name"
                     returnKeyType="done"
                     onSubmitEditing={() => Keyboard.dismiss()}
+                    section="teamLead"
+                    field="college"
                   />
                 </BlurView>
               </View>
@@ -393,31 +463,39 @@ const RegistrationScreen = ({ navigation }) => {
                       </View>
                       <InputField
                         label="Full Name *"
-                        value={member.name}
-                        onChangeText={(value) => handleInputChange('members', 'name', value, index)}
+                        defaultValue={member.name}
                         placeholder="Member's full name"
+                        section="members"
+                        field="name"
+                        index={index}
                       />
                       <InputField
                         label="Email *"
-                        value={member.email}
-                        onChangeText={(value) => handleInputChange('members', 'email', value, index)}
+                        defaultValue={member.email}
                         placeholder="member@email.com"
                         keyboardType="email-address"
+                        section="members"
+                        field="email"
+                        index={index}
                       />
                       <InputField
                         label="Phone *"
-                        value={member.phone}
-                        onChangeText={(value) => handleInputChange('members', 'phone', value, index)}
+                        defaultValue={member.phone}
                         placeholder="+91 98765 43210"
                         keyboardType="phone-pad"
+                        section="members"
+                        field="phone"
+                        index={index}
                       />
                       <InputField
                         label="College/University *"
-                        value={member.college}
-                        onChangeText={(value) => handleInputChange('members', 'college', value, index)}
+                        defaultValue={member.college}
                         placeholder="College or university name"
                         returnKeyType={index === formData.members.length - 1 ? "done" : "next"}
                         onSubmitEditing={index === formData.members.length - 1 ? () => Keyboard.dismiss() : null}
+                        section="members"
+                        field="college"
+                        index={index}
                       />
                     </View>
                   ))}
@@ -431,39 +509,44 @@ const RegistrationScreen = ({ navigation }) => {
                   <Text style={styles.stepTitle}>Step 4: Project Details</Text>
                   <InputField
                     label="Project Title *"
-                    value={formData.project.title}
-                    onChangeText={(value) => handleInputChange('project', 'title', value)}
+                    defaultValue={formData.project.title}
                     placeholder="Your project title"
+                    section="project"
+                    field="title"
                   />
                   <InputField
                     label="Domain *"
-                    value={formData.project.domain}
-                    onChangeText={(value) => handleInputChange('project', 'domain', value)}
+                    defaultValue={formData.project.domain}
                     placeholder="Education, Health, Agriculture, etc."
+                    section="project"
+                    field="domain"
                   />
                   <InputField
                     label="Problem Statement *"
-                    value={formData.project.problem}
-                    onChangeText={(value) => handleInputChange('project', 'problem', value)}
+                    defaultValue={formData.project.problem}
                     placeholder="Describe the real-world problem you're solving"
                     multiline={true}
                     blurOnSubmit={false}
+                    section="project"
+                    field="problem"
                   />
                   <InputField
                     label="Proposed Solution *"
-                    value={formData.project.solution}
-                    onChangeText={(value) => handleInputChange('project', 'solution', value)}
+                    defaultValue={formData.project.solution}
                     placeholder="Explain your approach to solve the problem"
                     multiline={true}
                     blurOnSubmit={false}
+                    section="project"
+                    field="solution"
                   />
                   <InputField
                     label="Technology Stack *"
-                    value={formData.project.techStack}
-                    onChangeText={(value) => handleInputChange('project', 'techStack', value)}
+                    defaultValue={formData.project.techStack}
                     placeholder="Technologies, frameworks, tools you'll use"
                     returnKeyType="done"
                     onSubmitEditing={() => Keyboard.dismiss()}
+                    section="project"
+                    field="techStack"
                   />
                 </BlurView>
               </View>
