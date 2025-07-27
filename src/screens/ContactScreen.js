@@ -61,6 +61,9 @@ const ContactScreen = ({ navigation }) => {
       case 'phone':
         Linking.openURL(`tel:${value}`);
         break;
+      case 'whatsapp':
+        Linking.openURL(`https://wa.me/9515858968`);
+        break;
       case 'email':
         Linking.openURL(`mailto:${value}`);
         break;
@@ -179,7 +182,7 @@ Please get back to me soon!`;
               icon="logo-whatsapp"
               title="WhatsApp"
               value="+91 95158 58968"
-              type="phone"
+              type="whatsapp"
               color={COLORS.success}
             />
             <ContactCard
