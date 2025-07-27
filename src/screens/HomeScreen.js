@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
+import SupabaseTest from '../components/SupabaseTest';
 
 const { width, height } = Dimensions.get('window');
 
@@ -98,6 +99,9 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </LinearGradient>
       </View>
+
+      {/* Supabase Test */}
+      <SupabaseTest />
 
       {/* Countdown Section */}
       <View style={styles.countdownSection}>

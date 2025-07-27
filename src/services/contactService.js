@@ -1,4 +1,4 @@
-import { supabase, TABLES } from '../config/supabase';
+import { supabase, TABLES } from '../../utils/supabase.js';
 
 export const contactService = {
   // Submit contact form
