@@ -105,8 +105,8 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.countdownContainer}>
           <CountdownCard value={timeLeft.days} label="DAYS" />
           <CountdownCard value={timeLeft.hours} label="HOURS" />
-          <CountdownCard value={timeLeft.minutes} label="MINUTES" />
-          <CountdownCard value={timeLeft.seconds} label="SECONDS" />
+          <CountdownCard value={timeLeft.minutes} label="MINS" />
+          <CountdownCard value={timeLeft.seconds} label="SECS" />
         </View>
       </View>
 
@@ -381,11 +381,11 @@ const styles = StyleSheet.create({
   countdownContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
   },
   countdownCard: {
     flex: 1,
-    marginHorizontal: 5,
+    marginHorizontal: 3,
     borderRadius: 15,
     overflow: 'hidden',
   },
@@ -399,9 +399,11 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   countdownLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.text,
     marginTop: 5,
+    textAlign: 'center',
+    lineHeight: 12,
   },
   infoSection: {
     padding: 20,

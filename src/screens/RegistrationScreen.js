@@ -346,19 +346,19 @@ const RegistrationScreen = ({ navigation }) => {
             <View style={styles.stepsContainer}>
               <StepIndicator
                 step={1}
-                title="Team Info"
+                title="Info"
                 isActive={currentStep === 1}
                 isCompleted={currentStep > 1}
               />
               <StepIndicator
                 step={2}
-                title="Team Lead"
+                title="Lead"
                 isActive={currentStep === 2}
                 isCompleted={currentStep > 2}
               />
               <StepIndicator
                 step={3}
-                title="Members"
+                title="Team"
                 isActive={currentStep === 3}
                 isCompleted={currentStep > 3}
               />
@@ -697,20 +697,24 @@ const styles = StyleSheet.create({
   stepsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    paddingHorizontal: 5,
   },
   stepIndicator: {
     alignItems: 'center',
     flex: 1,
+    maxWidth: 80,
   },
   stepCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: COLORS.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   stepCircleActive: {
     backgroundColor: COLORS.primary,
@@ -719,7 +723,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.success,
   },
   stepNumber: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
     color: COLORS.textSecondary,
   },
@@ -730,11 +734,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
     textAlign: 'center',
+    lineHeight: 14,
   },
   stepTitleActive: {
     color: COLORS.text,
     fontWeight: 'bold',
   },
+
   formSection: {
     marginBottom: 30,
   },
